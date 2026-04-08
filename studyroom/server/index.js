@@ -280,9 +280,11 @@ async function start() {
     );
   }
 
-  const server = app.listen(PORT, HOST, () => {
-    console.log(`API running on http://${HOST}:${PORT}`);
-  });
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server beží na porte ${PORT} a adrese 0.0.0.0`);
+});
 
   server.on('error', (error) => {
     console.error('Failed to bind API server:', error.message);
