@@ -70,7 +70,7 @@ export default function Workspace() {
       return payload?.details || payload?.error || fallback;
     } catch {
       if (response.url.includes("/api/")) {
-        return "API is unavailable. Start backend (`npm --prefix server start`) and reload.";
+        return "API is unavailable. Please try again later.";
       }
       return fallback;
     }
