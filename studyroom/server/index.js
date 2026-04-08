@@ -280,16 +280,19 @@ async function start() {
     );
   }
 
+
+
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server beží na porte ${PORT} a adrese 0.0.0.0`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server beží na porte ${PORT}`);
 });
 
-  server.on('error', (error) => {
-    console.error('Failed to bind API server:', error.message);
-    process.exit(1);
-  });
+server.on('error', (error) => {
+  if (error.syscall !== 'listen') throw error;
+  console.error(`Chyba pri štarte: ${error}`);
+  process.exit(1);
+});
 }
 
 start().catch((error) => {
