@@ -6,6 +6,9 @@ import {
   saveUserSettings,
 } from "../lib/userPreferences";
 
+const apiBaseUrl = import.meta.env.VITE_API_URL || ''
+const apiUrl = (path) => `${apiBaseUrl}${path}`
+
 const REMINDER_OPTIONS = [15, 30, 45, 60, 90, 120];
 const POMODORO_BREAK_OPTIONS = [5, 10, 15, 20, 25, 30];
 
@@ -20,7 +23,7 @@ export default function Settings() {
 
       try {
         const response = await fetch(
-          `/api/settings?userId=${encodeURIComponent(user.sub)}`
+          apiUrl(`/api/settings?userId=${encodeURIComponent(user.sub)}`)
         );
         if (!response.ok) {
           throw new Error(`Failed to load settings (${response.status})`);
@@ -45,7 +48,7 @@ export default function Settings() {
       saveUserSettings(user.sub, settings);
 
       try {
-        await fetch("/api/settings", {
+        await fetch(apiUrl("/api/settings"), {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

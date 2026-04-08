@@ -10,6 +10,9 @@ import {
   saveWaterTracker,
 } from "../lib/userPreferences";
 
+const apiBaseUrl = import.meta.env.VITE_API_URL || ''
+const apiUrl = (path) => `${apiBaseUrl}${path}`
+
 export default function Workspace() {
   const { user } = useAuth0();
   const primaryButtonClass =
@@ -81,7 +84,7 @@ export default function Workspace() {
       setError("");
       try {
         const response = await fetch(
-          `/api/todos?userId=${encodeURIComponent(user.sub)}`
+          apiUrl(`/api/todos?userId=${encodeURIComponent(user.sub)}`)
         );
         if (!response.ok) {
           const message = await getErrorMessage(
@@ -159,7 +162,7 @@ export default function Workspace() {
       setEventsError("");
       try {
         const response = await fetch(
-          `/api/events?userId=${encodeURIComponent(user.sub)}`
+          apiUrl(`/api/events?userId=${encodeURIComponent(user.sub)}`)
         );
         if (!response.ok) {
           const message = await getErrorMessage(
@@ -229,7 +232,7 @@ export default function Workspace() {
 
       try {
         const response = await fetch(
-          `/api/settings?userId=${encodeURIComponent(user.sub)}`
+          apiUrl(`/api/settings?userId=${encodeURIComponent(user.sub)}`)
         );
         if (!response.ok) {
           throw new Error(`Failed to load settings (${response.status})`);
@@ -301,7 +304,7 @@ export default function Workspace() {
 
     setError("");
     try {
-      const response = await fetch("/api/todos", {
+      const response = await fetch(apiUrl("/api/todos"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?.sub, text: trimmedTask }),
@@ -329,7 +332,7 @@ export default function Workspace() {
   async function deleteTask(id) {
     setError("");
     try {
-      const response = await fetch(`/api/todos/${id}`, {
+      const response = await fetch(apiUrl(`/api/todos/${id}`), {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -402,7 +405,7 @@ export default function Workspace() {
         ? new Date(`${eventDate}T23:59:59`)
         : new Date(startAt.getTime() + 60 * 60 * 1000);
 
-      const response = await fetch("/api/events", {
+      const response = await fetch(apiUrl("/api/events"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -447,7 +450,7 @@ export default function Workspace() {
 
     try {
       const response = await fetch(
-        `/api/events/${id}?userId=${encodeURIComponent(user.sub)}`,
+        apiUrl(`/api/events/${id}?userId=${encodeURIComponent(user.sub)}`),
         { method: "DELETE" }
       );
       if (!response.ok) {
