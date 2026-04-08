@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
   DEFAULT_SETTINGS,
   loadPomodoroTracker,
-  loadUserSettings,
   loadWaterTracker,
   savePomodoroTracker,
   saveWaterTracker,
@@ -553,20 +552,94 @@ export default function Workspace() {
   }
 
   return (
-    <div
-      className="relative min-h-[90vh] rounded-2xl bg-[#fff0f3] p-6"
-    >
+    <div className="min-h-[90vh] rounded-2xl bg-[#fff0f3] p-6">
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-4xl text-[#3e1e68]">Workspace</h1>
         {isApiOffline && (
           <div className="rounded-full border border-[#e6c6d4] bg-white/80 px-3 py-1 text-sm text-[#7a2f54] shadow-sm">
-            Offline mode: start backend on `4000`
+            Offline mode
           </div>
         )}
       </div>
 
-      {/* event center */}
-      <section className="mt-6 rounded-[22px] bg-[#fff9fb] p-5 shadow-[0_16px_38px_rgba(62,30,104,0.12)] xl:relative xl:ml-auto xl:mr-[360px] xl:w-[860px] xl:min-h-[430px]">
+      <div className="mt-6 grid min-h-[calc(90vh-6rem)] grid-cols-1 gap-6 xl:grid-cols-[320px_1fr_320px]">
+
+        {/* LEFT COLUMN: Pomodoro + Water */}
+        <div className="flex flex-col items-center gap-6 xl:items-stretch">
+
+          {/* pomodoro */}
+          <section className="w-full p-2">
+            <div className="mx-auto flex w-full max-w-[260px] flex-col items-center">
+              <div className="flex h-[260px] w-[260px] flex-col items-center justify-center rounded-full bg-[radial-gradient(circle_at_50%_35%,#ffffff_0%,#fff9fb_58%,#f6dce7_100%)] shadow-[0_18px_42px_rgba(62,30,104,0.14)]">
+                <p className="text-sm uppercase tracking-[0.28em] text-[#7b5ca8]">
+                  {pomodoroMode}
+                </p>
+                <p className="mt-3 text-[3.2rem] leading-none text-[#3e1e68]">
+                  {formatPomodoroTime(pomodoroSecondsLeft)}
+                </p>
+                <label className="mt-4 flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm">
+                  <span className="text-sm text-[#7b5ca8]">min</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="180"
+                    value={pomodoroMinutesInput}
+                    onChange={(event) => setPomodoroMinutesInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        applyPomodoroMinutes();
+                      }
+                    }}
+                    className="w-16 bg-transparent text-center text-[#3e1e68] outline-none"
+                  />
+                </label>
+              </div>
+              <div className="mt-4 flex w-full items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePomodoroRunning}
+                  className="rounded-full bg-[#e45a92] px-5 py-2 text-white hover:bg-[#ffacac]"
+                >
+                  {isPomodoroRunning ? "Pause" : "Start"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => resetPomodoro()}
+                  className="rounded-full bg-white px-4 py-2 text-[#7a2f54] shadow-sm hover:bg-[#fff0f3]"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* water */}
+          <section className="w-full text-center">
+            <button
+              type="button"
+              onClick={() => { if (settings.waterReminderEnabled) markWaterDrunk(); }}
+              disabled={!settings.waterReminderEnabled}
+              className="mx-auto block transition enabled:hover:-translate-y-1 enabled:hover:drop-shadow-[0_12px_24px_rgba(62,30,104,0.14)] disabled:cursor-default"
+            >
+              <img src="/Water-bottle.png" alt="Water bottle" className="mx-auto h-44 w-44 object-contain" />
+            </button>
+            <div className="mt-4 space-y-1">
+              <p className="text-[#3e1e68]">{waterCount} times drank</p>
+              <p className="text-sm text-[#7b5ca8]">
+                {settings.waterReminderEnabled
+                  ? `Reminder set every ${settings.waterReminderMinutes} minutes`
+                  : "Reminder is off"}
+              </p>
+            </div>
+          </section>
+        </div>
+
+        {/* CENTER COLUMN: Event center + Whiteboard */}
+        <div className="flex flex-col gap-6 xl:h-full">
+
+          {/* event center */}
+          <section className="rounded-[22px] bg-[#fff9fb] p-5 shadow-[0_16px_38px_rgba(62,30,104,0.12)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-[#7b5ca8]">
@@ -626,195 +699,92 @@ export default function Workspace() {
             </li>
           ))}
         </ul>
-      </section>
+          </section>
 
-      {/* pomodoro + water */}
-      <div className="xl:absolute xl:left-6 xl:top-24 xl:w-[320px]">
-        {/* top left ---> pomodoro */}
-        <section className="mt-6 w-full max-w-sm p-2 xl:mt-0 xl:w-[320px]">
-          <div className="mx-auto flex w-full max-w-[260px] flex-col items-center">
-            <div className="flex h-[260px] w-[260px] flex-col items-center justify-center rounded-full bg-[radial-gradient(circle_at_50%_35%,#ffffff_0%,#fff9fb_58%,#f6dce7_100%)] shadow-[0_18px_42px_rgba(62,30,104,0.14)]">
-              <p className="text-sm uppercase tracking-[0.28em] text-[#7b5ca8]">
-                {pomodoroMode}
-              </p>
-              <p className="mt-3 text-[3.2rem] leading-none text-[#3e1e68]">
-                {formatPomodoroTime(pomodoroSecondsLeft)}
-              </p>
-              <label className="mt-4 flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm">
-                <span className="text-sm text-[#7b5ca8]">min</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="180"
-                  value={pomodoroMinutesInput}
-                  onChange={(event) => setPomodoroMinutesInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      applyPomodoroMinutes();
-                    }
-                  }}
-                  className="w-16 bg-transparent text-center text-[#3e1e68] outline-none"
-                />
-              </label>
-            </div>
-
-            <div className="mt-4 flex w-full items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={togglePomodoroRunning}
-                className="rounded-full bg-[#e45a92] px-5 py-2 text-white hover:bg-[#ffacac]"
-              >
-                {isPomodoroRunning ? "Pause" : "Start"}
-              </button>
-              <button
-                type="button"
-                onClick={() => resetPomodoro()}
-                className="rounded-full bg-white px-4 py-2 text-[#7a2f54] shadow-sm hover:bg-[#fff0f3]"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* drink water itself :D */}
-        <section className="mt-6 w-full max-w-sm text-center xl:w-[320px]">
-          <button
-            type="button"
-            onClick={() => {
-              if (settings.waterReminderEnabled) markWaterDrunk();
-            }}
-            disabled={!settings.waterReminderEnabled}
-            className="mx-auto block transition enabled:hover:-translate-y-1 enabled:hover:drop-shadow-[0_12px_24px_rgba(62,30,104,0.14)] disabled:cursor-default"
+          {/* whiteboard card */}
+          <Link
+            to="/whiteboard"
+            className="group mt-auto block w-full rounded-[24px] bg-[#fff9fb] p-5 shadow-[0_14px_32px_rgba(62,30,104,0.12)] transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(62,30,104,0.18)]"
           >
-            <img
-              src="/Water-bottle.png"
-              alt="Water bottle"
-              className="mx-auto h-44 w-44 object-contain"
-            />
-          </button>
-
-          <div className="mt-4 space-y-1 text-center">
-            <p className="text-[#3e1e68]">{waterCount} times drank</p>
-            <p className="text-sm text-[#7b5ca8]">
-              {settings.waterReminderEnabled
-                ? `Reminder set every ${settings.waterReminderMinutes} minutes`
-                : "Reminder is off"}
-            </p>
-          </div>
-        </section>
-      </div>
-
-      {/* todo */}
-      <aside className="mt-6 w-full max-w-sm rounded-[18px] bg-[#fff9fb] p-4 shadow-[0_16px_38px_rgba(62,30,104,0.12)] xl:absolute xl:right-6 xl:top-6 xl:mt-0 xl:w-[320px]">
-        <div className="mb-3 flex items-center justify-between text-[#3e1e68]">
-          <span className="text-lg">✦</span>
-          <h2 className="text-xl tracking-[0.25em]">TO DO LIST</h2>
-          <span className="text-lg">✦</span>
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input
-            type="text"
-            value={newTask}
-            onChange={(event) => setNewTask(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") addTask();
-            }}
-            placeholder="Add a task..."
-            className="flex-1 rounded-lg border border-[#e6c6d4] px-3 py-2 text-[#3e1e68] outline-none focus:ring-2 focus:ring-[#e45a92]"
-          />
-          <button
-            type="button"
-            onClick={addTask}
-            disabled={isApiOffline}
-            className={primaryButtonClass}
-          >
-            Add
-          </button>
+            <p className="text-xs uppercase tracking-[0.28em] text-[#a076c9]">whiteboard</p>
+            <p className="mt-2 text-xl text-[#3e1e68] transition group-hover:opacity-0">open notes</p>
+            <p className="-mt-8 text-xl text-[#e45a92] opacity-0 transition group-hover:opacity-100">enter whiteboard -&gt;</p>
+          </Link>
         </div>
 
-        <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto pr-1">
-          {error && !isApiOffline && <li className="text-sm text-[#b23a66]">{error}</li>}
-          {isLoadingTasks && (
-            <li className="text-sm text-[#7b5ca8]">Loading tasks...</li>
-          )}
-          {!isLoadingTasks && tasks.length === 0 && (
-            <li className="text-sm text-[#7b5ca8]">No tasks yet.</li>
-          )}
-          {tasks.map((task) => (
-            <li
-              key={task.id}
-              className="flex items-center gap-2 border-b border-[#3e1e68]/40 px-1 py-2"
-            >
+        {/* RIGHT COLUMN: Todo + Spotify */}
+        <div className="flex flex-col gap-6 xl:h-full">
+
+          {/* todo */}
+          <aside className="w-full rounded-[18px] bg-[#fff9fb] p-4 shadow-[0_16px_38px_rgba(62,30,104,0.12)]">
+            <div className="mb-3 flex items-center justify-between text-[#3e1e68]">
+              <span className="text-lg">✦</span>
+              <h2 className="text-xl tracking-[0.25em]">TO DO LIST</h2>
+              <span className="text-lg">✦</span>
+            </div>
+            <div className="mt-3 flex gap-2">
               <input
-                type="checkbox"
-                checked={Boolean(checkedTaskIds[task.id])}
-                onChange={() => toggleTaskChecked(task.id)}
-                className="h-5 w-5 accent-[#e45a92]"
+                type="text"
+                value={newTask}
+                onChange={(event) => setNewTask(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") addTask(); }}
+                placeholder="Add a task..."
+                className="flex-1 rounded-lg border border-[#e6c6d4] px-3 py-2 text-[#3e1e68] outline-none focus:ring-2 focus:ring-[#e45a92]"
               />
-              <span
-                className={`flex-1 pr-2 ${
-                  checkedTaskIds[task.id]
-                    ? "text-[#7b5ca8] line-through opacity-70"
-                    : "text-[#3e1e68]"
-                }`}
-              >
-                {task.text}
-              </span>
-              <button
-                type="button"
-                onClick={() => deleteTask(task.id)}
-                className="rounded-md bg-[#f3d5df] px-2 py-1 text-sm text-[#7a2f54] hover:bg-[#efc2d2]"
-              >
-                Delete
+              <button type="button" onClick={addTask} disabled={isApiOffline} className={primaryButtonClass}>
+                Add
               </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
+            </div>
+            <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto pr-1">
+              {error && !isApiOffline && <li className="text-sm text-[#b23a66]">{error}</li>}
+              {isLoadingTasks && <li className="text-sm text-[#7b5ca8]">Loading tasks...</li>}
+              {!isLoadingTasks && tasks.length === 0 && <li className="text-sm text-[#7b5ca8]">No tasks yet.</li>}
+              {tasks.map((task) => (
+                <li key={task.id} className="flex items-center gap-2 border-b border-[#3e1e68]/40 px-1 py-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(checkedTaskIds[task.id])}
+                    onChange={() => toggleTaskChecked(task.id)}
+                    className="h-5 w-5 accent-[#e45a92]"
+                  />
+                  <span className={`flex-1 pr-2 ${checkedTaskIds[task.id] ? "text-[#7b5ca8] line-through opacity-70" : "text-[#3e1e68]"}`}>
+                    {task.text}
+                  </span>
+                  <button type="button" onClick={() => deleteTask(task.id)} className="rounded-md bg-[#f3d5df] px-2 py-1 text-sm text-[#7a2f54] hover:bg-[#efc2d2]">
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
 
-      {/* whiteboard card */}
-      <Link
-        to="/whiteboard"
-        className="group mt-10 block w-full max-w-[320px] rounded-[24px] bg-[#fff9fb] p-5 shadow-[0_14px_32px_rgba(62,30,104,0.12)] transition hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(62,30,104,0.18)] xl:absolute xl:bottom-8 xl:left-1/2 xl:mt-0 xl:w-[320px] xl:-translate-x-1/2"
-      >
-        <p className="text-xs uppercase tracking-[0.28em] text-[#a076c9]">
-          whiteboard
-        </p>
-        <p className="mt-2 text-xl text-[#3e1e68] transition group-hover:opacity-0">
-          open notes
-        </p>
-        <p className="-mt-8 text-xl text-[#e45a92] opacity-0 transition group-hover:opacity-100">
-          enter whiteboard -&gt;
-        </p>
-      </Link>
-
-      {/* spotify */}
-      <section className="mt-12 w-full max-w-sm rounded-[18px] p-4 xl:absolute xl:bottom-0 xl:right-6 xl:mt-0 xl:w-[320px]">
-        <h2 className="mb-3 text-lg text-[#3e1e68]">Studyroom wannabe radio</h2>
-        <iframe
-          data-testid="embed-iframe"
-          title="Spotify playlist embed"
-          style={{ borderRadius: "12px" }}
-          src="https://open.spotify.com/embed/playlist/3r0Q54dONwDjPmxBJikcLV?utm_source=generator"
-          width="100%"
-          height="152"
-          frameBorder="0"
-          allowFullScreen
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-          className="shadow-md"
-        />
-        <a
-          href="https://open.spotify.com/playlist/3r0Q54dONwDjPmxBJikcLV"
-          target="_blank"
-          rel="noreferrer"
-          className="mt-2 inline-block text-sm text-[#5b3d88] underline underline-offset-2 hover:text-[#3e1e68]"
-        >
-          Open in Spotify
-        </a>
-      </section>
+          {/* spotify */}
+          <section className="mt-auto w-full rounded-[18px] p-4">
+            <h2 className="mb-3 text-lg text-[#3e1e68]">Studyroom wannabe radio</h2>
+            <iframe
+              data-testid="embed-iframe"
+              title="Spotify playlist embed"
+              style={{ borderRadius: "12px" }}
+              src="https://open.spotify.com/embed/playlist/3r0Q54dONwDjPmxBJikcLV?utm_source=generator"
+              width="100%"
+              height="152"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              className="shadow-md"
+            />
+            <a
+              href="https://open.spotify.com/playlist/3r0Q54dONwDjPmxBJikcLV"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm text-[#5b3d88] underline underline-offset-2 hover:text-[#3e1e68]"
+            >
+              Open in Spotify
+            </a>
+          </section>
+        </div>
+      </div>
 
       {/* popup na new event*/}
       {isEventModalOpen && (

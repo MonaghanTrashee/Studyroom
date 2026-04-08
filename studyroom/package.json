@@ -4,12 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run start:server & npm run start:client",
-    "start:client": "vite",
-    "start:server": "npm --prefix server start",
-    "dev": "npm run dev:server & npm run dev:client",
-    "dev:client": "vite",
-    "dev:server": "npm --prefix server run dev",
+    "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

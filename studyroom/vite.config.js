@@ -6,7 +6,7 @@ import path from 'node:path'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiUrl = env.VITE_API_URL || 'http://127.0.0.1:4000'
+  const apiUrl = env.VITE_API_URL
 
   return {
     plugins: [
@@ -18,10 +18,12 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    server: {
-      proxy: {
-        '/api': apiUrl,
+    ...(apiUrl && {
+      server: {
+        proxy: {
+          '/api': { target: apiUrl, changeOrigin: true },
+        },
       },
-    },
+    }),
   }
 })
