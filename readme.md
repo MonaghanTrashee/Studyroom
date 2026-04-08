@@ -1,0 +1,2 @@
+# Studyroom
+- veduci prace: Ráčková
