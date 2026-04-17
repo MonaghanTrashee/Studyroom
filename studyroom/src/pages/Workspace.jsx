@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Link } from "react-router-dom";
 import {
@@ -41,10 +41,31 @@ export default function Workspace() {
   const [pomodoroEndsAt, setPomodoroEndsAt] = useState(null);
   const [isPomodoroAlertOpen, setIsPomodoroAlertOpen] = useState(false);
   const [pomodoroAlertText, setPomodoroAlertText] = useState("Timer ended!");
+  const [hasLoadedPomodoro, setHasLoadedPomodoro] = useState(false);
   const [hasLoadedCheckedTasks, setHasLoadedCheckedTasks] = useState(false);
   const checkedTasksStorageKey = user?.sub
     ? `studyroom-checked-tasks:${user.sub}`
     : null;
+
+  const pomodoroStateRef = useRef({});
+  useEffect(() => {
+    pomodoroStateRef.current = {
+      minutesInput: pomodoroMinutesInput,
+      mode: pomodoroMode,
+      isRunning: isPomodoroRunning,
+      secondsLeft: isPomodoroRunning && pomodoroEndsAt
+        ? Math.max(0, Math.ceil((pomodoroEndsAt - Date.now()) / 1000))
+        : pomodoroSecondsLeft,
+      endsAt: pomodoroEndsAt,
+    };
+  }, [pomodoroMinutesInput, pomodoroMode, isPomodoroRunning, pomodoroSecondsLeft, pomodoroEndsAt]);
+
+  useEffect(() => {
+    if (!user?.sub) return;
+    return () => {
+      savePomodoroTracker(user.sub, pomodoroStateRef.current);
+    };
+  }, [user?.sub]);
 
   const reminderIntervalMs = settings.waterReminderMinutes * 60 * 1000;
   const msUntilReminder = Math.max(
@@ -264,6 +285,7 @@ export default function Workspace() {
       }
 
       setCurrentTime(Date.now());
+      setHasLoadedPomodoro(true);
     }
 
     loadWorkspaceState();
@@ -279,7 +301,7 @@ export default function Workspace() {
   }, [lastDrinkAt, user?.sub, waterCount, waterSnoozedUntil]);
 
   useEffect(() => {
-    if (!user?.sub) return;
+    if (!user?.sub || !hasLoadedPomodoro) return;
     savePomodoroTracker(user.sub, {
       minutesInput: pomodoroMinutesInput,
       mode: pomodoroMode,
@@ -288,6 +310,7 @@ export default function Workspace() {
       endsAt: pomodoroEndsAt,
     });
   }, [
+    hasLoadedPomodoro,
     isPomodoroRunning,
     pomodoroEndsAt,
     pomodoroMinutesInput,
