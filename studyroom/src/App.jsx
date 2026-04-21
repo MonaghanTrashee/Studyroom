@@ -32,7 +32,7 @@ export default function App() {
           </div>
         </nav>
 
-        <main className="flex-1">
+        <main className="flex-1 flex flex-col">
           <Routes>
             <Route
               path="/"

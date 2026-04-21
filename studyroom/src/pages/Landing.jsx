@@ -4,7 +4,7 @@ export default function Landing() {
   const { loginWithRedirect } = useAuth0();
 
   return (
-    <div className="w-full min-h-[calc(100dvh-72px)] flex flex-col items-center justify-center bg-[#5D2F77] text-center">
+    <div className="w-full flex-1 flex flex-col items-center justify-center bg-[#5D2F77] text-center">
       <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:gap-8">
         <div className="flex flex-col items-center md:items-end">
           <h1 className="font-title text-[5rem] text-[#FFACAC] leading-none">
